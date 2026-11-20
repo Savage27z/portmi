@@ -4,7 +4,7 @@ import { categories, projects, type Project } from '../data/projects'
 import Poster from './Poster'
 import ProjectDetail from './ProjectDetail'
 
-type Open = { index: number; rect: DOMRect; from: HTMLElement } | null
+type Open = { index: number; rect: DOMRect } | null
 const tabs = ['All', ...categories] as const
 
 function Media({ p }: { p: Project }) {
@@ -111,7 +111,18 @@ export default function Work() {
 
   const openAt = (index: number, el: HTMLElement) => {
     setActive(index)
-    setOpen({ index: projects.indexOf(list[index]), rect: el.getBoundingClientRect(), from: el })
+    setOpen({ index, rect: el.getBoundingClientRect() })
+  }
+
+  const stripMedia = (i: number) => track.current?.querySelectorAll<HTMLElement>('.strip-media')[i]
+
+  // Keep the strips in step with the project shown in the detail view,
+  // so closing shrinks back into the right strip.
+  const syncTo = (i: number) => {
+    setActive(i)
+    const strip = stripMedia(i)?.parentElement
+    const el = track.current
+    if (strip && el) el.scrollLeft = Math.max(0, strip.offsetLeft - el.clientWidth * 0.15)
   }
 
   return (
@@ -168,10 +179,11 @@ export default function Work() {
 
       {open && (
         <ProjectDetail
+          list={list}
           index={open.index}
           rect={open.rect}
-          getReturnRect={() => open.from.getBoundingClientRect()}
-          onIndex={() => {}}
+          getReturnRect={(i) => stripMedia(i)?.getBoundingClientRect() ?? open.rect}
+          onIndex={syncTo}
           onClose={() => setOpen(null)}
         />
       )}

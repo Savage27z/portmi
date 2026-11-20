@@ -1,28 +1,34 @@
 import gsap from 'gsap'
 import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { projects } from '../data/projects'
+import type { Project } from '../data/projects'
 import { getLenis } from '../lib/scroll'
 import Poster from './Poster'
 
 type Props = {
+  list: Project[]
   index: number
   rect: DOMRect
-  getReturnRect: () => DOMRect
+  getReturnRect: (index: number) => DOMRect
   onIndex: (i: number) => void
   onClose: () => void
 }
 
-export default function ProjectDetail({ index: start, rect, getReturnRect, onIndex, onClose }: Props) {
+export default function ProjectDetail({ list, index: start, rect, getReturnRect, onIndex, onClose }: Props) {
   const [index, setIndex] = useState(start)
   const root = useRef<HTMLDivElement>(null)
   const media = useRef<HTMLDivElement>(null)
   const busy = useRef(true)
-  const p = projects[index]
+  const p = list[index]
 
   useEffect(() => {
     getLenis()?.stop()
-    const tl = gsap.timeline({ onComplete: () => (busy.current = false) })
+    const tl = gsap.timeline({
+      onComplete: () => {
+        busy.current = false
+        onIndex(start)
+      },
+    })
     tl.set(media.current, { top: rect.top, left: rect.left, width: rect.width, height: rect.height })
       .to(media.current, { top: 0, left: 0, width: '100vw', height: '100vh', duration: 1.2, ease: 'expo.inOut' })
       .to('.detail-shade', { autoAlpha: 1, duration: 0.8 }, 0.7)
@@ -36,7 +42,7 @@ export default function ProjectDetail({ index: start, rect, getReturnRect, onInd
   const close = () => {
     if (busy.current) return
     busy.current = true
-    const r = getReturnRect()
+    const r = getReturnRect(index)
     gsap
       .timeline({ onComplete: onClose })
       .to('.detail-fade, .detail-title', { autoAlpha: 0, y: -20, duration: 0.4, ease: 'power2.in' })
@@ -47,7 +53,7 @@ export default function ProjectDetail({ index: start, rect, getReturnRect, onInd
   const go = (dir: number) => {
     if (busy.current) return
     busy.current = true
-    const next = (index + dir + projects.length) % projects.length
+    const next = (index + dir + list.length) % list.length
     gsap
       .timeline()
       .to('.detail-title .ch', { yPercent: -110, stagger: 0.015, duration: 0.5, ease: 'expo.in' })
@@ -85,7 +91,7 @@ export default function ProjectDetail({ index: start, rect, getReturnRect, onInd
       <div className="detail-body">
         <div className="detail-top detail-fade mono">
           <span>
-            {String(index + 1).padStart(2, '0')} / {String(projects.length).padStart(2, '0')}
+            {String(index + 1).padStart(2, '0')} / {String(list.length).padStart(2, '0')}
           </span>
           <button onClick={close} data-cursor="CLOSE">
             CLOSE ✕

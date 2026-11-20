@@ -9,5 +9,6 @@ npm run build    # static build in dist/, deploy to Vercel / Netlify / GitHub Pa
 ```
 
 - Project content: `src/data/projects.ts` (screenshots live in `public/work/`)
-- Hero 3D character: `public/models/avatar.glb` (placeholder mannequin; swap for your own Ready Player Me / Mixamo GLB with an `idle` clip)
+- Hero figure: `public/hero/gabimaru.webp`, a transparent cut-out (square, waist-up works best). If the file is missing the hero renders without it.
+- Hero paper planes: cel-shaded toon material with ink outlines, see `src/components/HeroScene.tsx`
 - Palette and type: CSS variables at the top of `src/styles.css`

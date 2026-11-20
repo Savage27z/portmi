@@ -1,6 +1,6 @@
 import gsap from 'gsap'
 import { lazy, Suspense, useEffect, useRef } from 'react'
-import { scrollState } from '../lib/scroll'
+import { pointer, scrollState } from '../lib/scroll'
 
 const HeroScene = lazy(() => import('./HeroScene'))
 
@@ -33,6 +33,40 @@ function Marquee() {
   )
 }
 
+
+const FIGURE_SRC = '/hero/gabimaru.webp'
+
+function Figure() {
+  const wrap = useRef<HTMLDivElement>(null)
+  const img = useRef<HTMLImageElement>(null)
+  useEffect(() => {
+    const el = img.current
+    if (!el) return
+    const rx = gsap.quickTo(el, 'rotationX', { duration: 1.2, ease: 'power3' })
+    const ry = gsap.quickTo(el, 'rotationY', { duration: 1.2, ease: 'power3' })
+    const tx = gsap.quickTo(el, 'xPercent', { duration: 1.4, ease: 'power3' })
+    const tick = (t: number) => {
+      ry(pointer.x * 6)
+      rx(-pointer.y * 3)
+      tx(pointer.x * 1.5)
+      gsap.set(el, { scaleY: 1 + Math.sin(t * 1.6) * 0.006, scaleX: 1 - Math.sin(t * 1.6) * 0.002 })
+    }
+    gsap.ticker.add(tick)
+    return () => gsap.ticker.remove(tick)
+  }, [])
+  return (
+    <div className="hero-figure" ref={wrap}>
+      <img
+        ref={img}
+        src={FIGURE_SRC}
+        alt="Savage"
+        draggable={false}
+        onError={() => wrap.current?.classList.add('is-missing')}
+      />
+    </div>
+  )
+}
+
 export default function Hero({ entered }: { entered: boolean }) {
   const root = useRef<HTMLElement>(null)
 
@@ -49,6 +83,11 @@ export default function Hero({ entered }: { entered: boolean }) {
         ease: 'none',
         scrollTrigger: { trigger: root.current, start: 'top top', end: '60% top', scrub: true },
       })
+      gsap.to('.hero-figure', {
+        yPercent: -10,
+        ease: 'none',
+        scrollTrigger: { trigger: root.current, start: 'top top', end: 'bottom top', scrub: true },
+      })
     }, root)
     return () => ctx.revert()
   }, [])
@@ -58,6 +97,7 @@ export default function Hero({ entered }: { entered: boolean }) {
     const ctx = gsap.context(() => {
       const tl = gsap.timeline({ delay: 0.5 })
       tl.from('.marquee', { yPercent: 110, duration: 1.6, ease: 'expo.out' })
+        .from('.hero-figure', { yPercent: 30, autoAlpha: 0, duration: 1.8, ease: 'expo.out' }, 0.15)
         .from('.hero-pill', { xPercent: -110, duration: 1.2, ease: 'expo.out' }, 0.2)
         .from('.hero-role > *', { yPercent: 120, autoAlpha: 0, stagger: 0.08, duration: 1.1, ease: 'expo.out' }, 0.3)
         .from('.hero-scroll', { autoAlpha: 0, duration: 0.8 }, 0.8)
@@ -69,6 +109,8 @@ export default function Hero({ entered }: { entered: boolean }) {
     <section className="hero" ref={root}>
       <div className="hero-stage" style={{ clipPath: 'polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%)' }}>
         <div className="hero-glow" />
+        <Marquee />
+        <Figure />
         <Suspense fallback={null}>
           <HeroScene />
         </Suspense>
@@ -96,7 +138,6 @@ export default function Hero({ entered }: { entered: boolean }) {
           <span>Creative Engineer</span>
         </div>
         <div className="hero-scroll mono">(SCROLL TO EXPLORE)</div>
-        <Marquee />
       </div>
     </section>
   )

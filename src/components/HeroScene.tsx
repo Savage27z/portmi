@@ -1,5 +1,4 @@
 import { Canvas, useFrame, useThree } from '@react-three/fiber'
-import { Environment, Lightformer } from '@react-three/drei'
 import { useEffect, useMemo, useRef } from 'react'
 import * as THREE from 'three'
 import { pointer } from '../lib/scroll'
@@ -26,18 +25,51 @@ function usePlaneGeometry() {
   }, [])
 }
 
-const COUNT = 140
+const COUNT = 40
+
+function useToonGradient() {
+  return useMemo(() => {
+    const tex = new THREE.DataTexture(new Uint8Array([70, 70, 70, 255, 165, 165, 165, 255, 255, 255, 255, 255]), 3, 1, THREE.RGBAFormat)
+    tex.minFilter = THREE.NearestFilter
+    tex.magFilter = THREE.NearestFilter
+    tex.generateMipmaps = false
+    tex.needsUpdate = true
+    return tex
+  }, [])
+}
 
 function Planes() {
   const geo = usePlaneGeometry()
+  const gradient = useToonGradient()
   const mat = useMemo(
-    () => new THREE.MeshPhysicalMaterial({ color: '#ffffff', roughness: 0.55, sheen: 0.5, side: THREE.DoubleSide, flatShading: true }),
-    [],
+    () => new THREE.MeshToonMaterial({ color: '#ffffff', gradientMap: gradient, side: THREE.DoubleSide }),
+    [gradient],
   )
   const mesh = useRef<THREE.InstancedMesh>(null!)
+  const ink = useRef<THREE.InstancedMesh>(null!)
+  // Cel "ink line": a slightly larger black copy of each plane, pushed behind it in depth.
+  const inkGeo = useMemo(() => {
+    const g = geo.clone()
+    g.computeBoundingBox()
+    const c = new THREE.Vector3()
+    g.boundingBox!.getCenter(c)
+    g.translate(-c.x, -c.y, -c.z).scale(1.16, 1.5, 1.12).translate(c.x, c.y, c.z)
+    return g
+  }, [geo])
+  const inkMat = useMemo(
+    () =>
+      new THREE.MeshBasicMaterial({
+        color: '#0b0a09',
+        side: THREE.DoubleSide,
+        polygonOffset: true,
+        polygonOffsetFactor: 4,
+        polygonOffsetUnits: 4,
+      }),
+    [],
+  )
   const data = useMemo(() => {
     const rand = (a: number, b: number) => a + Math.random() * (b - a)
-    const tints = [PALETTE.bone, PALETTE.bone, PALETTE.clay, PALETTE.bone, PALETTE.orange, '#1a1a1a']
+    const tints = [PALETTE.bone, PALETTE.bone, PALETTE.clay, PALETTE.bone, PALETTE.orange, '#2a2622']
     return Array.from({ length: COUNT }, () => {
       const dir = Math.random() < 0.75 ? 1 : -1
       return {
@@ -45,7 +77,7 @@ function Planes() {
         vel: new THREE.Vector3(dir * rand(0.5, 1.3), rand(-0.05, 0.12), rand(-0.25, 0.25)),
         push: new THREE.Vector3(),
         phase: rand(0, 6.28),
-        scale: rand(0.18, 0.42),
+        scale: rand(0.25, 0.5),
         color: new THREE.Color(tints[Math.floor(Math.random() * tints.length)]),
       }
     })
@@ -61,6 +93,7 @@ function Planes() {
   useEffect(() => {
     data.forEach((d, i) => mesh.current.setColorAt(i, d.color))
     mesh.current.instanceColor!.needsUpdate = true
+    ink.current.instanceMatrix = mesh.current.instanceMatrix
   }, [data])
 
   useFrame((state, delta) => {
@@ -95,7 +128,12 @@ function Planes() {
     mesh.current.instanceMatrix.needsUpdate = true
   })
 
-  return <instancedMesh ref={mesh} args={[geo, mat, COUNT]} frustumCulled={false} />
+  return (
+    <>
+      <instancedMesh ref={ink} args={[inkGeo, inkMat, COUNT]} frustumCulled={false} renderOrder={0} />
+      <instancedMesh ref={mesh} args={[geo, mat, COUNT]} frustumCulled={false} renderOrder={1} />
+    </>
+  )
 }
 
 function Rig() {
@@ -115,19 +153,12 @@ export default function HeroScene() {
       className="hero-canvas"
       dpr={[1, 1.75]}
       camera={{ position: [0, 1.34, 0.72], fov: 34, near: 0.05, far: 40 }}
-      gl={{ antialias: true, alpha: true, toneMapping: THREE.ACESFilmicToneMapping }}
+      gl={{ antialias: true, alpha: true, toneMapping: THREE.NoToneMapping }}
     >
-      <ambientLight intensity={0.35} />
-      <directionalLight position={[-2.5, 3, 3]} intensity={2.2} color="#fff1df" />
-      <spotLight position={[2.6, 2.4, -1.8]} angle={0.7} penumbra={1} intensity={60} color={PALETTE.orange} />
-      <pointLight position={[-2, 1, -2]} intensity={6} color="#6f7cff" />
+      <ambientLight intensity={0.9} />
+      <directionalLight position={[-2.5, 3, 3]} intensity={2.4} color="#fff1df" />
       <Planes />
       <Rig />
-      <Environment resolution={256}>
-        <Lightformer form="rect" intensity={3} position={[0, 4, -3]} scale={[10, 2, 1]} />
-        <Lightformer form="rect" intensity={2} color="#ffd8c2" position={[-4, 1, 1]} rotation-y={Math.PI / 2} scale={[6, 2, 1]} />
-        <Lightformer form="ring" intensity={4} color={PALETTE.orange} position={[4, 1.5, -1]} scale={2} />
-      </Environment>
     </Canvas>
   )
 }
