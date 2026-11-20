@@ -49,12 +49,15 @@ export default function Work() {
   const [tab, setTab] = useState<(typeof tabs)[number]>('All')
   const list = useMemo(() => (tab === 'All' ? projects : projects.filter((p) => p.category === tab)), [tab])
   const [active, setActive] = useState(0)
+  // The book that's pulled off the shelf. Only a click pulls one out.
+  const [picked, setPicked] = useState<number | null>(null)
   const [progress, setProgress] = useState(0)
   const [open, setOpen] = useState<Open>(null)
   const p = list[Math.min(active, list.length - 1)]
 
   useEffect(() => {
     setActive(0)
+    setPicked(null)
     track.current?.scrollTo({ left: 0 })
     gsap.fromTo('.strip', { clipPath: 'inset(100% 0% 0% 0%)' }, { clipPath: 'inset(0% 0% 0% 0%)', stagger: 0.04, duration: 1, ease: 'expo.out' })
   }, [tab])
@@ -135,6 +138,7 @@ export default function Work() {
   // so closing shrinks back into the right strip.
   const syncTo = (i: number) => {
     setActive(i)
+    setPicked(i)
     const strip = stripMedia(i)?.parentElement
     const el = track.current
     if (strip && el) el.scrollLeft = Math.max(0, strip.offsetLeft - el.clientWidth * 0.15)
@@ -169,19 +173,25 @@ export default function Work() {
             <span><em>C</em>{p.stack.slice(0, 2).join(' · ')}</span>
           </div>
           <p className="work-blurb" key={p.id}>{p.blurb}</p>
-          <div className="work-hint mono">← SCROLL / DRAG SIDEWAYS →</div>
+          <div className="work-hint mono">← SCROLL / DRAG SIDEWAYS → · CLICK A BOOK TO PULL IT OUT</div>
         </div>
-        <div className="strips" ref={track} data-lenis-prevent-wheel>
+        <div className="strips" ref={track} data-lenis-prevent-wheel onPointerLeave={() => picked !== null && setActive(picked)}>
           {list.map((proj, i) => (
             <button
               key={proj.id}
-              className={'strip' + (i === active ? ' is-active' : '')}
+              className={'strip' + (i === picked ? ' is-active' : '')}
               style={bookStyle(proj)}
               onPointerEnter={() => setActive(i)}
               onFocus={() => setActive(i)}
-              onClick={(e) => openAt(i, e.currentTarget.querySelector('.strip-media') as HTMLElement)}
-              data-cursor="OPEN"
-              aria-label={'Open ' + proj.title}
+              onClick={(e) => {
+                if (picked === i) openAt(i, e.currentTarget.querySelector('.strip-media') as HTMLElement)
+                else {
+                  setPicked(i)
+                  setActive(i)
+                }
+              }}
+              data-cursor={picked === i ? 'OPEN' : 'PULL'}
+              aria-label={(picked === i ? 'Open ' : 'Preview ') + proj.title}
             >
               <span className="strip-media">
                 <Media p={proj} />
