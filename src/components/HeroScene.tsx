@@ -1,5 +1,6 @@
 import { Canvas, useFrame, useThree } from '@react-three/fiber'
-import { Environment, Lightformer, useAnimations, useGLTF } from '@react-three/drei'
+import { Environment, Lightformer } from '@react-three/drei'
+import Bust from './Bust'
 import { useEffect, useMemo, useRef } from 'react'
 import * as THREE from 'three'
 import { pointer } from '../lib/scroll'
@@ -9,64 +10,6 @@ const PALETTE = {
   clay: '#c7bba6',
   orange: '#ea5a3a',
   bone: '#ece6da',
-}
-
-function Avatar() {
-  const group = useRef<THREE.Group>(null!)
-  const { scene, animations } = useGLTF('/models/avatar.glb')
-  const { actions } = useAnimations(animations, group)
-  const look = useRef(new THREE.Vector2())
-  const bones = useMemo(() => {
-    let head: THREE.Object3D | undefined
-    let neck: THREE.Object3D | undefined
-    let spine: THREE.Object3D | undefined
-    scene.traverse((o) => {
-      if (o.name.endsWith('Head') && !head) head = o
-      if (o.name.endsWith('Neck') && !neck) neck = o
-      if (o.name.endsWith('Spine2') && !spine) spine = o
-      const mesh = o as THREE.SkinnedMesh
-      if (!mesh.isMesh) return
-      const joints = (mesh.material as THREE.Material).name.includes('Joints')
-      mesh.material = new THREE.MeshPhysicalMaterial({
-        color: joints ? PALETTE.orange : '#16181d',
-        roughness: joints ? 0.25 : 0.62,
-        metalness: joints ? 0.4 : 0,
-        clearcoat: joints ? 1 : 0.15,
-        sheen: joints ? 0 : 0.6,
-        sheenColor: new THREE.Color(PALETTE.orange),
-      })
-      mesh.frustumCulled = false
-    })
-    return { head, neck, spine }
-  }, [scene])
-
-  useEffect(() => {
-    actions.idle?.reset().fadeIn(0.4).play()
-  }, [actions])
-
-  const q = useMemo(() => new THREE.Quaternion(), [])
-  const e = useMemo(() => new THREE.Euler(), [])
-  useFrame((_, dt) => {
-    look.current.x = THREE.MathUtils.damp(look.current.x, pointer.x, 4, dt)
-    look.current.y = THREE.MathUtils.damp(look.current.y, pointer.y, 4, dt)
-    const yaw = look.current.x * 0.7
-    const pitch = -look.current.y * 0.35
-    const apply = (b: THREE.Object3D | undefined, k: number) => {
-      if (!b) return
-      e.set(pitch * k, yaw * k, 0)
-      q.setFromEuler(e)
-      b.quaternion.multiply(q)
-    }
-    apply(bones.spine, 0.25)
-    apply(bones.neck, 0.35)
-    apply(bones.head, 0.55)
-  })
-
-  return (
-    <group ref={group} position={[0, -0.02, 0]}>
-      <primitive object={scene} />
-    </group>
-  )
 }
 
 function usePlaneGeometry() {
@@ -99,7 +42,7 @@ function Planes() {
     return Array.from({ length: COUNT }, () => {
       const dir = Math.random() < 0.75 ? 1 : -1
       return {
-        pos: new THREE.Vector3(rand(-7, 7), rand(-0.6, 3.4), rand(-5, 0.9)),
+        pos: new THREE.Vector3(rand(-7, 7), rand(-0.4, 3.2), rand(-5, 0.05)),
         vel: new THREE.Vector3(dir * rand(0.5, 1.3), rand(-0.05, 0.12), rand(-0.25, 0.25)),
         push: new THREE.Vector3(),
         phase: rand(0, 6.28),
@@ -158,10 +101,10 @@ function Planes() {
 
 function Rig() {
   const { camera } = useThree()
-  const target = useMemo(() => new THREE.Vector3(0, 1.32, 0), [])
+  const target = useMemo(() => new THREE.Vector3(0, 1.3, 0), [])
   useFrame((_, dt) => {
     camera.position.x = THREE.MathUtils.damp(camera.position.x, pointer.x * 0.25, 2.5, dt)
-    camera.position.y = THREE.MathUtils.damp(camera.position.y, 1.42 + pointer.y * 0.12, 2.5, dt)
+    camera.position.y = THREE.MathUtils.damp(camera.position.y, 1.34 + pointer.y * 0.05, 2.5, dt)
     camera.lookAt(target)
   })
   return null
@@ -172,14 +115,14 @@ export default function HeroScene() {
     <Canvas
       className="hero-canvas"
       dpr={[1, 1.75]}
-      camera={{ position: [0, 1.42, 2.65], fov: 32, near: 0.1, far: 40 }}
+      camera={{ position: [0, 1.34, 0.72], fov: 34, near: 0.05, far: 40 }}
       gl={{ antialias: true, alpha: true, toneMapping: THREE.ACESFilmicToneMapping }}
     >
       <ambientLight intensity={0.35} />
       <directionalLight position={[-2.5, 3, 3]} intensity={2.2} color="#fff1df" />
       <spotLight position={[2.6, 2.4, -1.8]} angle={0.7} penumbra={1} intensity={60} color={PALETTE.orange} />
       <pointLight position={[-2, 1, -2]} intensity={6} color="#6f7cff" />
-      <Avatar />
+      <Bust />
       <Planes />
       <Rig />
       <Environment resolution={256}>
@@ -191,4 +134,3 @@ export default function HeroScene() {
   )
 }
 
-useGLTF.preload('/models/avatar.glb')
