@@ -1,7 +1,7 @@
 import gsap from 'gsap'
 import { useEffect, useRef } from 'react'
 
-const lines = ['Building', 'weird', 'things', 'since 2023']
+const lines = ['Building', 'creative', 'things', 'since 2023']
 
 const skills = [
   { title: '3D & Games', note: "If it can run at 60fps in a browser tab, I've probably tried to ship it." },
