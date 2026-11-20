@@ -11,6 +11,21 @@ function Media({ p }: { p: Project }) {
   return p.img ? <img src={p.img} alt="" loading="lazy" draggable={false} /> : <Poster project={p} />
 }
 
+// Every book gets its own height, thickness and cloth shade, fixed per project.
+function bookStyle(p: Project) {
+  let h = 0
+  for (const c of p.id) h = (h * 31 + c.charCodeAt(0)) >>> 0
+  const height = 76 + (h % 25) // 76–100% of the shelf
+  const width = 2.8 + ((h >> 5) % 23) / 10 // 2.8–5vw
+  const tone = 34 + ((h >> 9) % 28) // how much of the accent shows in the cloth
+  return {
+    ['--h' as string]: height + '%',
+    ['--w' as string]: width + 'vw',
+    ['--tone' as string]: tone + '%',
+    ['--accent' as string]: p.accent,
+  }
+}
+
 function SplitTitle({ text }: { text: string }) {
   let n = 0
   return (
@@ -161,15 +176,20 @@ export default function Work() {
             <button
               key={proj.id}
               className={'strip' + (i === active ? ' is-active' : '')}
+              style={bookStyle(proj)}
               onPointerEnter={() => setActive(i)}
               onFocus={() => setActive(i)}
               onClick={(e) => openAt(i, e.currentTarget.querySelector('.strip-media') as HTMLElement)}
               data-cursor="OPEN"
               aria-label={'Open ' + proj.title}
             >
-              <span className="strip-num mono">{String(i + 1).padStart(2, '0')}</span>
               <span className="strip-media">
                 <Media p={proj} />
+              </span>
+              <span className="spine" aria-hidden>
+                <span className="spine-num mono">{String(i + 1).padStart(2, '0')}</span>
+                <span className="spine-title">{proj.title}</span>
+                <span className="spine-cat mono">{proj.category}</span>
               </span>
             </button>
           ))}

@@ -186,14 +186,42 @@ body.cursor-hover .cursor-ring { width: 56px; height: 56px; margin: -28px 0 0 -2
 .work-meta { display: flex; flex-direction: column; gap: 6px; margin: 3vh 0 2vh; color: var(--clay); }
 .work-meta em, .detail-grid em { font-style: normal; color: var(--mute); margin-right: 14px; }
 .work-blurb { color: var(--mute); max-width: 36ch; font-size: 16px; line-height: 1.5; animation: fadeUp 0.8s var(--ease) both; }
-.strips { display: flex; gap: 0.9vw; height: 66vh; align-items: center; overflow-x: auto; overflow-y: hidden; padding: 30px 10vw 0 0; scrollbar-width: none; cursor: grab; user-select: none; overscroll-behavior-x: contain; }
+.strips {
+  display: flex; gap: 0.25vw; height: 66vh; align-items: flex-end; overflow-x: auto; overflow-y: hidden; padding: 30px 10vw 20px 0.6vw; scrollbar-width: none; cursor: grab; user-select: none; overscroll-behavior-x: contain;
+  /* the shelf plank the books stand on */
+  background:
+    linear-gradient(to top, rgba(0, 0, 0, 0.55) 0 3px, #5a3e2b 3px 5px, #3b291d 5px 14px, #2a1d14 14px 20px, transparent 20px),
+    radial-gradient(60% 40% at 50% 100%, rgba(234, 90, 58, 0.06), transparent 70%);
+}
 .strips::-webkit-scrollbar { display: none; }
 .strips:active { cursor: grabbing; }
-.strip { position: relative; flex: 0 0 6.5vw; height: 100%; transition: flex-basis 0.9s var(--ease); }
-.strip.is-active { flex-basis: 24vw; }
-.strip-num { position: absolute; top: -24px; left: 0; color: var(--mute); transition: color 0.4s; }
-.strip.is-active .strip-num { color: var(--orange); }
-.strip-media { position: absolute; inset: 0; pointer-events: none; overflow: hidden; background: #000; }
+.strip { position: relative; flex: 0 0 var(--w, 6vw); height: var(--h, 90%); transform-origin: 50% 100%; transition: flex-basis 0.9s var(--ease), height 0.9s var(--ease), transform 0.7s var(--ease), box-shadow 0.7s; box-shadow: 0 0 0 rgba(0, 0, 0, 0); }
+.strip:hover:not(.is-active) { transform: translateY(-6px); }
+.strip.is-active { flex-basis: 24vw; height: 100%; transform: translateY(-12px); box-shadow: 0 26px 40px -18px rgba(0, 0, 0, 0.8); z-index: 2; }
+
+/* book spine */
+.spine {
+  position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: space-between; padding: 14px 0 16px; overflow: hidden;
+  border-radius: 3px 3px 1px 1px; color: #efe7d6; pointer-events: none;
+  background:
+    linear-gradient(90deg, rgba(0, 0, 0, 0.45) 0%, rgba(255, 255, 255, 0.08) 22%, rgba(255, 255, 255, 0) 48%, rgba(0, 0, 0, 0.18) 78%, rgba(0, 0, 0, 0.5) 100%),
+    repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.025) 0 1px, transparent 1px 3px),
+    color-mix(in srgb, var(--accent) var(--tone, 45%), #15110d);
+  transition: opacity 0.6s var(--ease);
+}
+.spine::before, .spine::after { content: ''; position: absolute; left: 10%; right: 10%; height: 5px; border-top: 1px solid rgba(214, 180, 112, 0.7); border-bottom: 1px solid rgba(214, 180, 112, 0.7); }
+.spine::before { top: 11%; }
+.spine::after { bottom: 13%; }
+.spine-num { font-size: 9px; letter-spacing: 0.1em; opacity: 0.75; }
+.spine-title {
+  flex: 1; margin: 16% 0; writing-mode: vertical-rl; font-family: var(--condensed); font-weight: 900; text-transform: uppercase;
+  font-size: clamp(15px, 1.5vw, 26px); letter-spacing: 0.04em; line-height: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-shadow: 0 1px 0 rgba(0, 0, 0, 0.35);
+}
+.spine-cat { font-size: 8px; letter-spacing: 0.12em; writing-mode: vertical-rl; opacity: 0.6; }
+.strip.is-active .spine { opacity: 0; }
+.strip:not(.is-active) .strip-media { opacity: 0; }
+.strip-media { transition: opacity 0.6s var(--ease); border-radius: 3px 3px 1px 1px; }
+.strip.is-active .strip-media { position: absolute; inset: 0; pointer-events: none; overflow: hidden; background: #000; }
 .strip-media img, .strip-media .poster { width: 100%; height: 100%; object-fit: cover; filter: grayscale(1) brightness(0.55); transform: scale(1.15); transition: filter 0.8s var(--ease), transform 1.2s var(--ease); }
 .strip.is-active .strip-media img, .strip.is-active .strip-media .poster { filter: none; transform: scale(1); }
 @media (max-width: 899px) {
@@ -201,7 +229,7 @@ body.cursor-hover .cursor-ring { width: 56px; height: 56px; margin: -28px 0 0 -2
   .ticks { display: none; }
   .work-info { margin-bottom: 6vh; }
   .strips { overflow-x: auto; padding: 30px var(--pad) 0; height: 60vh; scroll-snap-type: x mandatory; }
-  .strip { flex: 0 0 18vw; scroll-snap-align: start; }
+  .strip { flex: 0 0 calc(var(--w, 6vw) * 2.6); scroll-snap-align: start; }
   .strip.is-active { flex-basis: 70vw; }
   .work-head { flex-wrap: wrap; }
 }
