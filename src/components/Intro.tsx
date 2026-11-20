@@ -12,7 +12,7 @@ const skills = [
 ]
 
 const about =
-  "I'm a self-taught builder who ships fast and wins hackathons — six so far. I make browser games, AI agent swarms, trading bots and onchain products that people actually use, then I make them move."
+  "Hi, I'm Idris Ahmed — SSS tier shipper. I make browser games, AI agent swarms, trading bots and onchain products that people actually use, then I make them move."
 
 export default function Intro() {
   const root = useRef<HTMLElement>(null)

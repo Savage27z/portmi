@@ -1,10 +1,11 @@
 import gsap from 'gsap'
-import { useEffect, useRef, useState } from 'react'
-import { projects, type Project } from '../data/projects'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import { categories, projects, type Project } from '../data/projects'
 import Poster from './Poster'
 import ProjectDetail from './ProjectDetail'
 
 type Open = { index: number; rect: DOMRect; from: HTMLElement } | null
+const tabs = ['All', ...categories] as const
 
 function Media({ p }: { p: Project }) {
   return p.img ? <img src={p.img} alt="" loading="lazy" draggable={false} /> : <Poster project={p} />
@@ -17,7 +18,7 @@ function SplitTitle({ text }: { text: string }) {
       {text.split(' ').map((word, w) => (
         <span className="word" key={w}>
           {word.split('').map((c, i) => (
-            <span className="ch" key={i} style={{ animationDelay: `${n++ * 22}ms` }}>
+            <span className="ch" key={i} style={{ animationDelay: (n++ * 22) + 'ms' }}>
               {c}
             </span>
           ))}{' '}
@@ -29,64 +30,88 @@ function SplitTitle({ text }: { text: string }) {
 
 export default function Work() {
   const root = useRef<HTMLElement>(null)
+  const track = useRef<HTMLDivElement>(null)
+  const [tab, setTab] = useState<(typeof tabs)[number]>('All')
+  const list = useMemo(() => (tab === 'All' ? projects : projects.filter((p) => p.category === tab)), [tab])
   const [active, setActive] = useState(0)
-  const [view, setView] = useState<'strips' | 'index'>('strips')
+  const [progress, setProgress] = useState(0)
   const [open, setOpen] = useState<Open>(null)
-  const preview = useRef<HTMLDivElement>(null)
-  const p = projects[active]
+  const p = list[Math.min(active, list.length - 1)]
 
   useEffect(() => {
-    if (view !== 'strips') return
-    const ctx = gsap.context(() => {
-      const mm = gsap.matchMedia()
-      mm.add('(min-width: 900px)', () => {
-        const track = root.current!.querySelector<HTMLElement>('.strips')!
-        const distance = () => Math.max(0, track.scrollWidth - track.clientWidth + window.innerWidth * 0.1)
-        gsap.to(track, {
-          x: () => -distance(),
-          ease: 'none',
-          scrollTrigger: {
-            trigger: '.work-stage',
-            start: 'top top',
-            end: () => '+=' + (distance() + window.innerHeight * 0.6),
-            scrub: 0.6,
-            pin: true,
-            invalidateOnRefresh: true,
-            onUpdate: (st) => {
-              const i = Math.min(projects.length - 1, Math.floor(st.progress * projects.length))
-              setActive((cur) => (document.querySelector('.strip:hover') ? cur : i))
-            },
-          },
-        })
-      })
-      gsap.from('.strip', {
-        clipPath: 'inset(100% 0% 0% 0%)',
-        stagger: 0.04,
-        duration: 1.2,
-        ease: 'expo.out',
-        scrollTrigger: { trigger: '.work-stage', start: 'top 70%' },
-      })
-    }, root)
-    return () => ctx.revert()
-  }, [view])
+    setActive(0)
+    track.current?.scrollTo({ left: 0 })
+    gsap.fromTo('.strip', { clipPath: 'inset(100% 0% 0% 0%)' }, { clipPath: 'inset(0% 0% 0% 0%)', stagger: 0.04, duration: 1, ease: 'expo.out' })
+  }, [tab])
 
   useEffect(() => {
-    if (view !== 'index') return
-    const el = preview.current
+    const el = track.current
     if (!el) return
-    const x = gsap.quickTo(el, 'x', { duration: 0.6, ease: 'power3' })
-    const y = gsap.quickTo(el, 'y', { duration: 0.6, ease: 'power3' })
-    const move = (e: PointerEvent) => {
-      x(e.clientX)
-      y(e.clientY)
+    let target = el.scrollLeft
+    let raf = 0
+    const animate = () => {
+      el.scrollLeft += (target - el.scrollLeft) * 0.14
+      if (Math.abs(target - el.scrollLeft) > 0.5) raf = requestAnimationFrame(animate)
     }
-    window.addEventListener('pointermove', move)
-    return () => window.removeEventListener('pointermove', move)
-  }, [view])
+    const wheel = (e: WheelEvent) => {
+      const max = el.scrollWidth - el.clientWidth
+      const delta = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY
+      const next = Math.max(0, Math.min(max, target + delta))
+      if (next === target && Math.abs(e.deltaX) <= Math.abs(e.deltaY)) return
+      e.preventDefault()
+      target = next
+      cancelAnimationFrame(raf)
+      raf = requestAnimationFrame(animate)
+    }
+    let down = false
+    let startX = 0
+    let startLeft = 0
+    let moved = false
+    const pd = (e: PointerEvent) => {
+      down = true
+      moved = false
+      startX = e.clientX
+      startLeft = el.scrollLeft
+    }
+    const pm = (e: PointerEvent) => {
+      if (!down) return
+      const dx = e.clientX - startX
+      if (Math.abs(dx) > 4) moved = true
+      target = startLeft - dx
+      el.scrollLeft = target
+    }
+    const pu = () => (down = false)
+    const click = (e: MouseEvent) => {
+      if (moved) {
+        e.stopPropagation()
+        e.preventDefault()
+      }
+    }
+    const scroll = () => {
+      const max = el.scrollWidth - el.clientWidth
+      setProgress(max > 0 ? el.scrollLeft / max : 0)
+      if (!down && Math.abs(target - el.scrollLeft) < 1) target = el.scrollLeft
+    }
+    el.addEventListener('wheel', wheel, { passive: false })
+    el.addEventListener('pointerdown', pd)
+    window.addEventListener('pointermove', pm)
+    window.addEventListener('pointerup', pu)
+    el.addEventListener('click', click, true)
+    el.addEventListener('scroll', scroll)
+    return () => {
+      el.removeEventListener('wheel', wheel)
+      el.removeEventListener('pointerdown', pd)
+      window.removeEventListener('pointermove', pm)
+      window.removeEventListener('pointerup', pu)
+      el.removeEventListener('click', click, true)
+      el.removeEventListener('scroll', scroll)
+      cancelAnimationFrame(raf)
+    }
+  }, [])
 
   const openAt = (index: number, el: HTMLElement) => {
     setActive(index)
-    setOpen({ index, rect: el.getBoundingClientRect(), from: el })
+    setOpen({ index: projects.indexOf(list[index]), rect: el.getBoundingClientRect(), from: el })
   }
 
   return (
@@ -95,101 +120,58 @@ export default function Work() {
         <div className="mono">(SELECTED WORK — {String(projects.length).padStart(2, '0')})</div>
         <h2 className="work-title">Work</h2>
         <div className="work-toggle mono">
-          {(['strips', 'index'] as const).map((v) => (
-            <button key={v} className={view === v ? 'on' : ''} onClick={() => setView(v)}>
-              {v}
+          {tabs.map((t) => (
+            <button key={t} className={tab === t ? 'on' : ''} onClick={() => setTab(t)}>
+              {t}
+              <sup>{t === 'All' ? projects.length : projects.filter((x) => x.category === t).length}</sup>
             </button>
           ))}
         </div>
       </div>
 
-      {view === 'strips' ? (
-        <div className="work-stage">
-          <div className="ticks" aria-hidden>
-            {projects.map((_, i) => (
-              <i key={i} className={i === active ? 'on' : ''} />
-            ))}
+      <div className="work-stage">
+        <div className="work-info">
+          <div className="work-index mono">
+            {String(active + 1).padStart(2, '0')} / {String(list.length).padStart(2, '0')} — {p.category}
           </div>
-          <div className="work-info">
-            <div className="work-index mono">
-              {String(active + 1).padStart(2, '0')} / {String(projects.length).padStart(2, '0')}
-            </div>
-            <h3 className="work-name">
-              <SplitTitle text={p.title} />
-            </h3>
-            <div className="work-meta mono">
-              <span>
-                <em>A</em>
-                {p.type}
-              </span>
-              <span>
-                <em>B</em>
-                {p.year}
-              </span>
-              <span>
-                <em>C</em>
-                {p.stack.slice(0, 2).join(' · ')}
-              </span>
-            </div>
-            <p className="work-blurb" key={p.id}>
-              {p.blurb}
-            </p>
+          <h3 className="work-name">
+            <SplitTitle text={p.title} />
+          </h3>
+          <div className="work-meta mono">
+            <span><em>A</em>{p.type}</span>
+            <span><em>B</em>{p.year}</span>
+            <span><em>C</em>{p.stack.slice(0, 2).join(' · ')}</span>
           </div>
-          <div className="strips">
-            {projects.map((proj, i) => (
-              <button
-                key={proj.id}
-                className={'strip' + (i === active ? ' is-active' : '')}
-                onPointerEnter={() => setActive(i)}
-                onFocus={() => setActive(i)}
-                onClick={(e) => openAt(i, e.currentTarget.querySelector('.strip-media') as HTMLElement)}
-                data-cursor="OPEN"
-                aria-label={'Open ' + proj.title}
-              >
-                <span className="strip-num mono">{String(i + 1).padStart(2, '0')}</span>
-                <span className="strip-media">
-                  <Media p={proj} />
-                </span>
-              </button>
-            ))}
-          </div>
+          <p className="work-blurb" key={p.id}>{p.blurb}</p>
+          <div className="work-hint mono">← SCROLL / DRAG SIDEWAYS →</div>
         </div>
-      ) : (
-        <div className="index-list" onPointerLeave={() => preview.current?.classList.remove('on')}>
-          {projects.map((proj, i) => (
+        <div className="strips" ref={track} data-lenis-prevent-wheel>
+          {list.map((proj, i) => (
             <button
               key={proj.id}
-              className="index-row"
-              onPointerEnter={() => {
-                setActive(i)
-                preview.current?.classList.add('on')
-              }}
-              onClick={() => openAt(i, preview.current!.querySelector('.preview-media') as HTMLElement)}
+              className={'strip' + (i === active ? ' is-active' : '')}
+              onPointerEnter={() => setActive(i)}
+              onFocus={() => setActive(i)}
+              onClick={(e) => openAt(i, e.currentTarget.querySelector('.strip-media') as HTMLElement)}
               data-cursor="OPEN"
+              aria-label={'Open ' + proj.title}
             >
-              <span className="mono">{String(i + 1).padStart(2, '0')}</span>
-              <span className="index-title">{proj.title}</span>
-              <span className="mono index-type">{proj.type}</span>
-              <span className="mono">{proj.year}</span>
+              <span className="strip-num mono">{String(i + 1).padStart(2, '0')}</span>
+              <span className="strip-media">
+                <Media p={proj} />
+              </span>
             </button>
           ))}
-          <div className="preview" ref={preview}>
-            <div className="preview-media">
-              <Media p={p} />
-            </div>
-          </div>
         </div>
-      )}
+        <div className="work-bar"><i style={{ transform: 'scaleX(' + progress + ')' }} /></div>
+      </div>
 
       {open && (
         <ProjectDetail
           index={open.index}
           rect={open.rect}
-          getReturnRect={() => {
-            const strip = document.querySelectorAll<HTMLElement>('.strip .strip-media')[active]
-            return (strip ?? open.from).getBoundingClientRect()
-          }}
-          onIndex={setActive}
+          getReturnRect={() => open.from.getBoundingClientRect()}
+          onIndex={() => {}}
           onClose={() => setOpen(null)}
         />
       )}

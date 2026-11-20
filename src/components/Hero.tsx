@@ -94,7 +94,6 @@ export default function Hero({ entered }: { entered: boolean }) {
         <div className="hero-role">
           <span className="arrow">↘</span>
           <span>Creative Engineer</span>
-          <span>& 6x Hackathon Winner</span>
         </div>
         <div className="hero-scroll mono">(SCROLL TO EXPLORE)</div>
         <Marquee />

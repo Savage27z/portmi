@@ -10,13 +10,18 @@ export type Project = {
   live?: string
   img?: string
   accent: string
+  category: Category
 }
+
+export const categories = ['Games', 'Onchain', 'AI', 'Trading', 'Tools'] as const
+export type Category = (typeof categories)[number]
 
 const gh = (name: string) => `https://github.com/Savage27z/${name}`
 
 export const projects: Project[] = [
   {
     id: 'longwaydown',
+    category: 'Games',
     title: 'Long Way Down',
     year: '2026',
     type: 'Browser game',
@@ -30,6 +35,7 @@ export const projects: Project[] = [
   },
   {
     id: 'sisyphus',
+    category: 'Games',
     title: 'Sisyphus',
     year: '2026',
     type: 'Multiplayer game',
@@ -43,6 +49,7 @@ export const projects: Project[] = [
   },
   {
     id: 'prowl',
+    category: 'AI',
     title: 'Prowl',
     year: '2026',
     type: 'AI agents / Onchain',
@@ -56,6 +63,7 @@ export const projects: Project[] = [
   },
   {
     id: 'plot',
+    category: 'Tools',
     title: 'Plot',
     year: '2026',
     type: '3D product tool',
@@ -69,6 +77,7 @@ export const projects: Project[] = [
   },
   {
     id: 'zeitgeist',
+    category: 'Trading',
     title: 'Zeitgeist',
     year: '2026',
     type: 'Market intelligence',
@@ -82,6 +91,7 @@ export const projects: Project[] = [
   },
   {
     id: 'rewind',
+    category: 'Tools',
     title: 'Rewind',
     year: '2026',
     type: 'Developer tool',
@@ -95,6 +105,7 @@ export const projects: Project[] = [
   },
   {
     id: 'jailbreak',
+    category: 'Games',
     title: 'Jailbreak',
     year: '2026',
     type: 'Game / Cosmos',
@@ -108,6 +119,7 @@ export const projects: Project[] = [
   },
   {
     id: 'blitz',
+    category: 'Onchain',
     title: 'Blitz',
     year: '2026',
     type: 'Prediction markets',
@@ -121,6 +133,7 @@ export const projects: Project[] = [
   },
   {
     id: 'moodmint',
+    category: 'Onchain',
     title: 'Moodmint',
     year: '2026',
     type: 'Generative NFT',
@@ -134,6 +147,7 @@ export const projects: Project[] = [
   },
   {
     id: 'hallofrugs',
+    category: 'Onchain',
     title: 'Hall of Rugs',
     year: '2026',
     type: 'Data / Dark humour',
@@ -147,6 +161,7 @@ export const projects: Project[] = [
   },
   {
     id: 'alphadesk',
+    category: 'AI',
     title: 'AlphaDesk',
     year: '2026',
     type: 'Fintech / AI',
@@ -160,6 +175,7 @@ export const projects: Project[] = [
   },
   {
     id: 'pulse',
+    category: 'AI',
     title: 'Pulse AI',
     year: '2026',
     type: 'Autonomous newsroom',
@@ -173,6 +189,7 @@ export const projects: Project[] = [
   },
   {
     id: 'tweetcity',
+    category: 'Tools',
     title: 'TweetCity',
     year: '2026',
     type: '3D data viz',
@@ -186,6 +203,7 @@ export const projects: Project[] = [
   },
   {
     id: 'polymarket',
+    category: 'Trading',
     title: 'Polymarket Bot',
     year: '2026',
     type: 'Trading bot',
@@ -197,6 +215,7 @@ export const projects: Project[] = [
   },
   {
     id: 'scanner',
+    category: 'Trading',
     title: 'Dextool Scanner',
     year: '2026',
     type: 'Trading bot',
@@ -208,6 +227,7 @@ export const projects: Project[] = [
   },
   {
     id: 'drizzy',
+    category: 'Onchain',
     title: 'drizzy',
     year: '2026',
     type: 'Rust CLI',

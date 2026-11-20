@@ -97,9 +97,14 @@ export default function Contact() {
             <a href="https://x.com/savage27z" target="_blank" rel="noreferrer">
               X / TWITTER ↗
             </a>
+            <a href="https://t.me/savage27z" target="_blank" rel="noreferrer">
+              TELEGRAM ↗
+            </a>
+            <a href="mailto:savage27zzz@gmail.com">EMAIL ↗</a>
           </div>
           <div className="cta">
             <div className="mono">(GOT AN IDEA?)</div>
+            <a className="cta-mail" href="mailto:savage27zzz@gmail.com">savage27zzz@gmail.com</a>
             <h2>
               <span className="cta-line">
                 <span>Let's build</span>
@@ -110,7 +115,7 @@ export default function Contact() {
                 </span>
               </span>
             </h2>
-            <a className="magnet" href="https://x.com/savage27z" target="_blank" rel="noreferrer" data-cursor="DM">
+            <a className="magnet" href="mailto:savage27zzz@gmail.com" data-cursor="MAIL">
               <span>Say hello</span>
             </a>
           </div>

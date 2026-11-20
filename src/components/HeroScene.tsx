@@ -1,6 +1,5 @@
 import { Canvas, useFrame, useThree } from '@react-three/fiber'
 import { Environment, Lightformer, useAnimations, useGLTF } from '@react-three/drei'
-import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js'
 import { useEffect, useMemo, useRef } from 'react'
 import * as THREE from 'three'
 import { pointer } from '../lib/scroll'
@@ -29,7 +28,7 @@ function Avatar() {
       if (!mesh.isMesh) return
       const joints = (mesh.material as THREE.Material).name.includes('Joints')
       mesh.material = new THREE.MeshPhysicalMaterial({
-        color: joints ? PALETTE.ink : PALETTE.clay,
+        color: joints ? PALETTE.orange : '#16181d',
         roughness: joints ? 0.25 : 0.62,
         metalness: joints ? 0.4 : 0,
         clearcoat: joints ? 1 : 0.15,
@@ -70,127 +69,91 @@ function Avatar() {
   )
 }
 
-function useShapeGeometries() {
+function usePlaneGeometry() {
   return useMemo(() => {
-    const profile = [
-      new THREE.Vector2(0.11, -0.22),
-      new THREE.Vector2(0.2, -0.22),
-      new THREE.Vector2(0.2, 0.22),
-      new THREE.Vector2(0.11, 0.22),
-      new THREE.Vector2(0.11, -0.22),
-    ]
-    const tube = new THREE.LatheGeometry(profile, 48)
-    tube.computeVertexNormals()
-    const arm = () => new THREE.CylinderGeometry(0.11, 0.11, 0.62, 32)
-    const a = arm()
-    const b = arm().rotateZ(Math.PI / 2)
-    const c = arm().rotateX(Math.PI / 2)
-    const cross = mergeGeometries([a, b, c])!
-    const knot = new THREE.CapsuleGeometry(0.12, 0.34, 8, 24)
-    return [tube, cross, knot]
+    const nose = [0, 0, 0.6]
+    const tl = [-0.42, 0.07, -0.4]
+    const tr = [0.42, 0.07, -0.4]
+    const c = [0, 0, -0.4]
+    const k = [0, -0.14, -0.4]
+    const tris = [nose, tl, c, nose, c, tr, nose, c, k, nose, k, c]
+    const g = new THREE.BufferGeometry()
+    g.setAttribute('position', new THREE.Float32BufferAttribute(tris.flat(), 3))
+    g.computeVertexNormals()
+    return g
   }, [])
 }
 
-type Body = {
-  home: THREE.Vector3
-  pos: THREE.Vector3
-  vel: THREE.Vector3
-  spin: THREE.Vector3
-  geo: number
-  mat: number
-  scale: number
-}
+const COUNT = 140
 
-function Shapes() {
-  const geos = useShapeGeometries()
-  const mats = useMemo(
-    () => [
-      new THREE.MeshPhysicalMaterial({ color: '#111', roughness: 0.18, metalness: 0.2, clearcoat: 1, clearcoatRoughness: 0.1 }),
-      new THREE.MeshPhysicalMaterial({ color: PALETTE.clay, roughness: 0.5, sheen: 0.4 }),
-      new THREE.MeshPhysicalMaterial({ color: PALETTE.orange, roughness: 0.22, clearcoat: 1, clearcoatRoughness: 0.15 }),
-      new THREE.MeshPhysicalMaterial({ color: PALETTE.bone, roughness: 0.35, clearcoat: 0.6 }),
-    ],
+function Planes() {
+  const geo = usePlaneGeometry()
+  const mat = useMemo(
+    () => new THREE.MeshPhysicalMaterial({ color: '#ffffff', roughness: 0.55, sheen: 0.5, side: THREE.DoubleSide, flatShading: true }),
     [],
   )
-  const bodies = useMemo<Body[]>(() => {
+  const mesh = useRef<THREE.InstancedMesh>(null!)
+  const data = useMemo(() => {
     const rand = (a: number, b: number) => a + Math.random() * (b - a)
-    const list: Body[] = []
-    for (let i = 0; i < 34; i++) {
-      let x = 0
-      let z = 0
-      do {
-        x = rand(-2.6, 2.6)
-        z = rand(-2.6, -0.2)
-      } while (Math.abs(x) < 0.7 && z > -1.4)
-      const home = new THREE.Vector3(x, rand(0.4, 2.4), z)
-      list.push({
-        home,
-        pos: home.clone().add(new THREE.Vector3(0, -4 - Math.random() * 3, 0)),
-        vel: new THREE.Vector3(),
-        spin: new THREE.Vector3(rand(-0.4, 0.4), rand(-0.4, 0.4), rand(-0.4, 0.4)),
-        geo: i % 3,
-        mat: i % 7 === 0 ? 2 : i % 3 === 0 ? 3 : i % 2 === 0 ? 0 : 1,
-        scale: rand(0.7, 1.25),
-      })
-    }
-    return list
+    const tints = [PALETTE.bone, PALETTE.bone, PALETTE.clay, PALETTE.bone, PALETTE.orange, '#1a1a1a']
+    return Array.from({ length: COUNT }, () => {
+      const dir = Math.random() < 0.75 ? 1 : -1
+      return {
+        pos: new THREE.Vector3(rand(-7, 7), rand(-0.6, 3.4), rand(-5, 0.9)),
+        vel: new THREE.Vector3(dir * rand(0.5, 1.3), rand(-0.05, 0.12), rand(-0.25, 0.25)),
+        push: new THREE.Vector3(),
+        phase: rand(0, 6.28),
+        scale: rand(0.18, 0.42),
+        color: new THREE.Color(tints[Math.floor(Math.random() * tints.length)]),
+      }
+    })
   }, [])
-  const refs = useRef<THREE.Mesh[]>([])
   const { camera } = useThree()
+  const dummy = useMemo(() => new THREE.Object3D(), [])
   const ray = useMemo(() => new THREE.Raycaster(), [])
-  const plane = useMemo(() => new THREE.Plane(new THREE.Vector3(0, 0, 1), 1.2), [])
+  const plane = useMemo(() => new THREE.Plane(new THREE.Vector3(0, 0, 1), 1.5), [])
   const hit = useMemo(() => new THREE.Vector3(), [])
-  const tmp = useMemo(() => new THREE.Vector3(), [])
+  const ahead = useMemo(() => new THREE.Vector3(), [])
   const ndc = useMemo(() => new THREE.Vector2(), [])
+
+  useEffect(() => {
+    data.forEach((d, i) => mesh.current.setColorAt(i, d.color))
+    mesh.current.instanceColor!.needsUpdate = true
+  }, [data])
 
   useFrame((state, delta) => {
     const dt = Math.min(delta, 1 / 30)
+    const t = state.clock.elapsedTime
     ndc.set(pointer.x, pointer.y)
     ray.setFromCamera(ndc, camera)
     ray.ray.intersectPlane(plane, hit)
-    const t = state.clock.elapsedTime
-    bodies.forEach((b, i) => {
-      const m = refs.current[i]
-      if (!m) return
-      tmp.copy(b.home)
-      tmp.y += Math.sin(t * 0.6 + i) * 0.08
-      const force = tmp.sub(b.pos).multiplyScalar(6)
-      const dx = b.pos.x - hit.x
-      const dy = b.pos.y - hit.y
-      const d = Math.hypot(dx, dy)
-      if (d < 0.9) {
-        const push = (0.9 - d) * 40
-        force.x += (dx / (d + 1e-4)) * push
-        force.y += (dy / (d + 1e-4)) * push
-        b.spin.x += dy * dt * 4
-        b.spin.y += dx * dt * 4
+    data.forEach((d, i) => {
+      d.pos.addScaledVector(d.vel, dt)
+      if (d.pos.x > 7.5) d.pos.x = -7.5
+      if (d.pos.x < -7.5) d.pos.x = 7.5
+      if (d.pos.y > 3.8) d.pos.y = -0.8
+      const dx = d.pos.x + d.push.x - hit.x
+      const dy = d.pos.y + d.push.y - hit.y
+      const dist = Math.hypot(dx, dy)
+      if (dist < 1.1 && d.pos.z > -2.5) {
+        const f = (1.1 - dist) * 9 * dt
+        d.push.x += (dx / (dist + 1e-4)) * f
+        d.push.y += (dy / (dist + 1e-4)) * f
       }
-      b.vel.addScaledVector(force, dt).multiplyScalar(0.9)
-      b.pos.addScaledVector(b.vel, dt)
-      b.spin.multiplyScalar(0.995)
-      m.position.copy(b.pos)
-      m.rotation.x += (b.spin.x + 0.1) * dt
-      m.rotation.y += (b.spin.y + 0.08) * dt
-      m.rotation.z += b.spin.z * dt
+      d.push.multiplyScalar(0.97)
+      dummy.position.copy(d.pos).add(d.push)
+      dummy.position.y += Math.sin(t * 1.4 + d.phase) * 0.06
+      ahead.copy(dummy.position).add(d.vel)
+      dummy.lookAt(ahead)
+      dummy.rotateZ(Math.sin(t * 1.1 + d.phase) * 0.35 + d.push.x * 1.5)
+      dummy.scale.setScalar(d.scale)
+      dummy.updateMatrix()
+      mesh.current.setMatrixAt(i, dummy.matrix)
     })
+    mesh.current.instanceMatrix.needsUpdate = true
   })
 
-  return (
-    <group>
-      {bodies.map((b, i) => (
-        <mesh
-          key={i}
-          ref={(el) => {
-            if (el) refs.current[i] = el
-          }}
-          geometry={geos[b.geo]}
-          material={mats[b.mat]}
-          scale={b.scale}
-          position={b.pos}
-        />
-      ))}
-    </group>
-  )
+  return <instancedMesh ref={mesh} args={[geo, mat, COUNT]} frustumCulled={false} />
 }
 
 function Rig() {
@@ -217,7 +180,7 @@ export default function HeroScene() {
       <spotLight position={[2.6, 2.4, -1.8]} angle={0.7} penumbra={1} intensity={60} color={PALETTE.orange} />
       <pointLight position={[-2, 1, -2]} intensity={6} color="#6f7cff" />
       <Avatar />
-      <Shapes />
+      <Planes />
       <Rig />
       <Environment resolution={256}>
         <Lightformer form="rect" intensity={3} position={[0, 4, -3]} scale={[10, 2, 1]} />
