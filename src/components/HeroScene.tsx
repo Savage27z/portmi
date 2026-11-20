@@ -1,6 +1,5 @@
 import { Canvas, useFrame, useThree } from '@react-three/fiber'
 import { Environment, Lightformer } from '@react-three/drei'
-import Bust from './Bust'
 import { useEffect, useMemo, useRef } from 'react'
 import * as THREE from 'three'
 import { pointer } from '../lib/scroll'
@@ -122,7 +121,6 @@ export default function HeroScene() {
       <directionalLight position={[-2.5, 3, 3]} intensity={2.2} color="#fff1df" />
       <spotLight position={[2.6, 2.4, -1.8]} angle={0.7} penumbra={1} intensity={60} color={PALETTE.orange} />
       <pointLight position={[-2, 1, -2]} intensity={6} color="#6f7cff" />
-      <Bust />
       <Planes />
       <Rig />
       <Environment resolution={256}>
