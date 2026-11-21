@@ -59,7 +59,7 @@ export default function Work() {
     setActive(0)
     setPicked(null)
     track.current?.scrollTo({ left: 0 })
-    gsap.fromTo('.strip', { clipPath: 'inset(100% 0% 0% 0%)' }, { clipPath: 'inset(0% 0% 0% 0%)', stagger: 0.04, duration: 1, ease: 'expo.out' })
+    gsap.fromTo('.strip', { clipPath: 'inset(100% 0% 0% 0%)' }, { clipPath: 'inset(0% 0% 0% 0%)', stagger: 0.04, duration: 1, ease: 'expo.out', clearProps: 'clipPath' })
   }, [tab])
 
   useEffect(() => {
@@ -193,8 +193,37 @@ export default function Work() {
               data-cursor={picked === i ? 'OPEN' : 'PULL'}
               aria-label={(picked === i ? 'Open ' : 'Preview ') + proj.title}
             >
-              <span className="strip-media">
-                <Media p={proj} />
+              <span className="book">
+                <span className="book-page">
+                  <span className="page-head mono">
+                    <span>No. {String(i + 1).padStart(2, '0')}</span>
+                    <span>{proj.type}</span>
+                  </span>
+                  <span className="strip-media plate">
+                    <Media p={proj} />
+                    <i className="corner tl" />
+                    <i className="corner tr" />
+                    <i className="corner bl" />
+                    <i className="corner br" />
+                  </span>
+                  <span className="page-title">{proj.title}</span>
+                  <span className="page-meta mono">
+                    {proj.year} · {proj.stack.slice(0, 2).join(' · ')}
+                  </span>
+                  <span className="page-foot mono">Click to open ↗</span>
+                  <span className="stamp mono">{proj.category}</span>
+                </span>
+                <span className="book-cover">
+                  <span className="cover-front">
+                    <span className="cover-title">{proj.title}</span>
+                  </span>
+                  <span className="cover-back">
+                    <span className="bookplate mono">
+                      Ex libris
+                      <b>SAVAGE✰</b>
+                    </span>
+                  </span>
+                </span>
               </span>
               <span className="spine" aria-hidden>
                 <span className="spine-num mono">{String(i + 1).padStart(2, '0')}</span>
