@@ -12,8 +12,11 @@ const skills = [
   { title: 'Motion & UI', note: 'I use fancy motion to make my work look harder than it was.' },
 ]
 
-const about =
-  "Hi, I'm Idris Ahmed — SSS tier shipper. I make browser games, AI agent swarms, trading bots and onchain products that people actually use, then I make them move."
+// One entry per line of the bio.
+const about = [
+  "Hi, I'm Idris Ahmed, S tier shipper.",
+  'I make browser games, AI agent swarms, trading bots and onchain products that people actually use, then I make them move.',
+]
 
 export default function Intro() {
   const root = useRef<HTMLElement>(null)
@@ -81,9 +84,14 @@ export default function Intro() {
       <div className="about">
         <div className="about-label mono">(ABOUT ME)</div>
         <p className="about-copy">
-          {about.split(' ').map((w, i) => (
-            <span className="w" key={i}>
-              {w}{' '}
+          {about.map((line, l) => (
+            <span key={l}>
+              {l > 0 && <br />}
+              {line.split(' ').map((w, i) => (
+                <span className="w" key={i}>
+                  {w}{' '}
+                </span>
+              ))}
             </span>
           ))}
         </p>
