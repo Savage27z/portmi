@@ -23,18 +23,25 @@ export default function ProjectDetail({ list, index: start, rect, getReturnRect,
 
   useEffect(() => {
     getLenis()?.stop()
-    const tl = gsap.timeline({
-      onComplete: () => {
-        busy.current = false
-        onIndex(start)
-      },
-    })
-    tl.set(media.current, { top: rect.top, left: rect.left, width: rect.width, height: rect.height })
-      .to(media.current, { top: 0, left: 0, width: '100vw', height: '100vh', duration: 1.2, ease: 'expo.inOut' })
-      .to('.detail-shade', { autoAlpha: 1, duration: 0.8 }, 0.7)
-      .from('.detail-title .ch', { yPercent: 110, stagger: 0.025, duration: 1, ease: 'expo.out' }, 0.9)
-      .from('.detail-fade', { y: 30, autoAlpha: 0, stagger: 0.06, duration: 0.9, ease: 'expo.out' }, 1)
+    busy.current = true
+    // Scoped so a re-run (React StrictMode in dev) reverts the first run instead of
+    // stacking a second "from" tween on already-hidden text, which left CLOSE invisible.
+    const ctx = gsap.context(() => {
+      gsap
+        .timeline({
+          onComplete: () => {
+            busy.current = false
+            onIndex(start)
+          },
+        })
+        .set(media.current, { top: rect.top, left: rect.left, width: rect.width, height: rect.height })
+        .to(media.current, { top: 0, left: 0, width: '100vw', height: '100vh', duration: 1.2, ease: 'expo.inOut' })
+        .to('.detail-shade', { autoAlpha: 1, duration: 0.8 }, 0.7)
+        .fromTo('.detail-title .ch', { yPercent: 110 }, { yPercent: 0, stagger: 0.025, duration: 1, ease: 'expo.out' }, 0.9)
+        .fromTo('.detail-fade', { y: 30, autoAlpha: 0 }, { y: 0, autoAlpha: 1, stagger: 0.06, duration: 0.9, ease: 'expo.out' }, 1)
+    }, root)
     return () => {
+      ctx.revert()
       getLenis()?.start()
     }
   }, [rect])

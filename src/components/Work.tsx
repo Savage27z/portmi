@@ -132,6 +132,13 @@ export default function Work() {
     setOpen({ index, rect: el.getBoundingClientRect() })
   }
 
+  useEffect(() => {
+    if (picked === null || open) return
+    const key = (e: KeyboardEvent) => e.key === 'Escape' && setPicked(null)
+    window.addEventListener('keydown', key)
+    return () => window.removeEventListener('keydown', key)
+  }, [picked, open])
+
   const stripMedia = (i: number) => track.current?.querySelectorAll<HTMLElement>('.strip-media')[i]
 
   // Keep the strips in step with the project shown in the detail view,
@@ -175,7 +182,16 @@ export default function Work() {
           <p className="work-blurb" key={p.id}>{p.blurb}</p>
           <div className="work-hint mono">← SCROLL / DRAG SIDEWAYS → · CLICK A BOOK TO PULL IT OUT</div>
         </div>
-        <div className="strips" ref={track} data-lenis-prevent-wheel onPointerLeave={() => picked !== null && setActive(picked)}>
+        <div
+          className="strips"
+          ref={track}
+          data-lenis-prevent-wheel
+          onPointerLeave={() => picked !== null && setActive(picked)}
+          onClick={(e) => {
+            // clicking empty shelf puts the open book back
+            if (e.target === e.currentTarget) setPicked(null)
+          }}
+        >
           {list.map((proj, i) => (
             <button
               key={proj.id}
@@ -195,6 +211,18 @@ export default function Work() {
             >
               <span className="book">
                 <span className="book-page">
+                  <span
+                    className="put-back mono"
+                    role="button"
+                    tabIndex={picked === i ? 0 : -1}
+                    data-cursor="BACK"
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      setPicked(null)
+                    }}
+                  >
+                    ✕ Put back
+                  </span>
                   <span className="page-head mono">
                     <span>No. {String(i + 1).padStart(2, '0')}</span>
                     <span>{proj.type}</span>
