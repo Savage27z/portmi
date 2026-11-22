@@ -57,7 +57,6 @@ body.cursor-hover .cursor-ring { width: 56px; height: 56px; margin: -28px 0 0 -2
 .pre-enter.is-ready:hover { background: var(--clay); color: var(--bg); }
 .pre-count-wrap { position: absolute; left: var(--pad); bottom: 0; overflow: hidden; line-height: 0.8; }
 .pre-count { font-family: var(--display); font-weight: 500; font-size: clamp(90px, 18vw, 260px); color: var(--ink); line-height: 0.8; letter-spacing: -0.04em; }
-.pre-hint { position: absolute; right: var(--pad); bottom: var(--pad); color: var(--mute); }
 .pre-circle { position: absolute; width: 300vmax; height: 300vmax; border-radius: 50%; background: var(--orange); left: 50%; top: 50%; margin: -150vmax 0 0 -150vmax; transform: scale(0); z-index: 3; }
 
 /* header */
@@ -393,8 +392,6 @@ body.cursor-hover .cursor-ring { width: 56px; height: 56px; margin: -28px 0 0 -2
 
 /* phone fixes */
 @media (max-width: 700px) {
-  /* loader: hint moves up under the mark so the counter has the bottom to itself */
-  .pre-hint { bottom: auto; top: calc(var(--pad) + 34px); left: var(--pad); right: var(--pad); }
   /* about: stat labels stay on one line */
   .stats { gap: 3vw; }
   .stat span { display: block; font-size: 9px; letter-spacing: 0.04em; white-space: nowrap; }

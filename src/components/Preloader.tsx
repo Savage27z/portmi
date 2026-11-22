@@ -62,7 +62,6 @@ export default function Preloader({ onEnter }: { onEnter: () => void }) {
       <div className="pre-count-wrap">
         <div className="pre-count">{String(count).padStart(3, '0')}</div>
       </div>
-      <div className="pre-hint mono">BEST WITH SOUND OFF AND CURIOSITY ON</div>
       <div className="pre-circle" ref={circle} />
     </div>
   )
