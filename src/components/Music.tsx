@@ -1,36 +1,44 @@
 import { useEffect, useRef, useState } from 'react'
 
-// Official Spotify embeds only: the songs stream from Spotify, nothing is hosted here.
-// Visitors logged into Spotify hear full tracks; everyone else gets 30-second previews.
+// Official YouTube uploads only (DrakeVEVO and YouTube's "Drake - Topic" channel).
+// They stream from YouTube, so every visitor hears the full song and nothing is hosted here.
+// YouTube requires the player to stay visible and at least 200x200, so the card shows it.
 const tracks = [
-  { id: '514joG57v4yKTsfQmz7stz', title: 'Janice STFU', album: 'ICEMAN' },
-  { id: '5kQaR1wreGrkzJcXjysi8n', title: 'Do Not Disturb', album: 'More Life' },
-  { id: '1PDP7mLiAMwhfmgIwzhOm2', title: "Yebba's Heartbreak", album: 'Certified Lover Boy' },
-  { id: '1FswxShHCKgDSuNcZqfkk1', title: 'Cameras / Good Ones Go', album: 'Take Care' },
-  { id: '0wwPcA6wtMf6HUMpIRdeP7', title: 'Hotline Bling', album: 'Views' },
+  { id: 'x30_IHP1x3s', title: 'Janice STFU', album: 'ICEMAN' },
+  { id: 'zhY_0DoQCQs', title: 'Do Not Disturb', album: 'More Life' },
+  { id: '9rlW2rUzyn0', title: "Yebba's Heartbreak", album: 'Certified Lover Boy' },
+  { id: 'wnKoIQDfymE', title: 'Cameras / Good Ones Go', album: 'Take Care' },
+  { id: 'uxpDa-c-4Mc', title: 'Hotline Bling', album: 'Views' },
 ]
 
-type Controller = {
-  loadUri: (uri: string) => void
-  play: () => void
-  addListener: (event: string, cb: (e: { data: { isPaused: boolean } }) => void) => void
-}
-type IFrameAPI = {
-  createController: (el: HTMLElement, opts: { uri: string; width: string; height: number }, cb: (c: Controller) => void) => void
+type YTPlayer = { loadVideoById: (id: string) => void }
+type YTNamespace = {
+  Player: new (
+    el: HTMLElement,
+    opts: {
+      videoId: string
+      width: string
+      height: string
+      playerVars: Record<string, number>
+      events: { onStateChange: (e: { data: number }) => void }
+    },
+  ) => YTPlayer
 }
 declare global {
   interface Window {
-    onSpotifyIframeApiReady?: (api: IFrameAPI) => void
+    YT?: YTNamespace
+    onYouTubeIframeAPIReady?: () => void
   }
 }
 
-let apiPromise: Promise<IFrameAPI> | null = null
-function loadSpotifyApi() {
+let apiPromise: Promise<YTNamespace> | null = null
+function loadYouTubeApi() {
   if (!apiPromise) {
     apiPromise = new Promise((resolve) => {
-      window.onSpotifyIframeApiReady = resolve
+      if (window.YT?.Player) return resolve(window.YT)
+      window.onYouTubeIframeAPIReady = () => resolve(window.YT!)
       const s = document.createElement('script')
-      s.src = 'https://open.spotify.com/embed/iframe-api/v1'
+      s.src = 'https://www.youtube.com/iframe_api'
       s.async = true
       document.body.appendChild(s)
     })
@@ -44,16 +52,19 @@ export default function Music() {
   const [current, setCurrent] = useState(0)
   const [playing, setPlaying] = useState(false)
   const host = useRef<HTMLDivElement>(null)
-  const controller = useRef<Controller | null>(null)
+  const player = useRef<YTPlayer | null>(null)
 
   useEffect(() => {
     if (!started || !host.current) return
     let cancelled = false
-    loadSpotifyApi().then((api) => {
-      if (cancelled || !host.current) return
-      api.createController(host.current, { uri: `spotify:track:${tracks[current].id}`, width: '100%', height: 80 }, (c) => {
-        controller.current = c
-        c.addListener('playback_update', (e) => setPlaying(!e.data.isPaused))
+    loadYouTubeApi().then((YT) => {
+      if (cancelled || !host.current || player.current) return
+      player.current = new YT.Player(host.current, {
+        videoId: tracks[current].id,
+        width: '100%',
+        height: '100%',
+        playerVars: { playsinline: 1, rel: 0, modestbranding: 1 },
+        events: { onStateChange: (e) => setPlaying(e.data === 1) }, // 1 = playing
       })
     })
     return () => {
@@ -76,11 +87,7 @@ export default function Music() {
 
   const pick = (i: number) => {
     setCurrent(i)
-    const c = controller.current
-    if (c) {
-      c.loadUri(`spotify:track:${tracks[i].id}`)
-      c.play()
-    }
+    player.current?.loadVideoById(tracks[i].id) // loads and starts playing
   }
 
   return (
@@ -104,7 +111,7 @@ export default function Music() {
           ))}
         </ol>
         <div className="music-player">{started && <div ref={host} />}</div>
-        <div className="music-note mono">Drake · via Spotify</div>
+        <div className="music-note mono">Drake · via YouTube</div>
       </div>
       <button className="music-btn" onClick={toggle} data-cursor={open ? 'HIDE' : 'MUSIC'} aria-label="Music" aria-expanded={open}>
         <span className="eq" aria-hidden>

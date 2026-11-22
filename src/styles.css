@@ -440,7 +440,8 @@ body.cursor-hover .cursor-ring { width: 56px; height: 56px; margin: -28px 0 0 -2
 .music-list button.on { background: rgba(234, 90, 58, 0.14); color: var(--orange); }
 .music-title { font-family: var(--display); font-weight: 600; font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .music-album { font-size: 8px !important; }
-.music-player { min-height: 80px; border-radius: 12px; overflow: hidden; background: #282828; }
+.music-player { height: 200px; border-radius: 10px; overflow: hidden; background: #000; }
+.music-player > div, .music-player iframe { width: 100%; height: 100%; }
 .music-player iframe { display: block; border: 0; }
 .music-note { margin-top: 8px; font-size: 8px; color: var(--mute); text-align: right; }
 
