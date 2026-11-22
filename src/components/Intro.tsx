@@ -28,7 +28,7 @@ export default function Intro() {
       })
       tl.fromTo('.statement-circle', { scale: 0 }, { scale: 1, ease: 'none', duration: 1 }, 0)
         .fromTo('.statement-ink', { '--r': '0vmax' }, { '--r': '19vmax', ease: 'none', duration: 1 }, 0)
-        .from('.statement-line', { yPercent: 100, stagger: (i) => (i % lines.length) * 0.12, duration: 0.5, ease: 'power3.out' }, 0)
+        .from('.statement-line', { yPercent: 100, stagger: 0.12, duration: 0.5, ease: 'power3.out' }, 0)
         .to('.statement-photo', { scale: 1.08, duration: 1, ease: 'none' }, 0)
 
       gsap.utils.toArray<HTMLElement>('.about-copy .w').forEach((w) => {
