@@ -6,6 +6,7 @@ import Hero from './components/Hero'
 import Intro from './components/Intro'
 import Work from './components/Work'
 import Contact from './components/Contact'
+import Music from './components/Music'
 import { startLenis } from './lib/scroll'
 
 export default function App() {
@@ -22,6 +23,7 @@ export default function App() {
       <Cursor />
       <Preloader onEnter={() => setEntered(true)} />
       <Header entered={entered} />
+      {entered && <Music />}
       <main>
         <Hero entered={entered} />
         <Intro />
