@@ -13,7 +13,7 @@ const skills = [
 ]
 
 const about =
-  "Hi, I'm Idris Ahmed, a six-time hackathon winner from Lagos. I build browser games, AI agents, Telegram bots and onchain products that people actually use, then I make them move."
+  "Hi, I'm Idris Ahmed — SSS tier shipper. I make browser games, AI agent swarms, trading bots and onchain products that people actually use, then I make them move."
 
 export default function Intro() {
   const root = useRef<HTMLElement>(null)
@@ -97,8 +97,8 @@ export default function Intro() {
             <span className="mono">Chains shipped on</span>
           </div>
           <div className="stat">
-            <b>{String(projects.filter((p) => p.category === 'Games').length).padStart(2, '0')}</b>
-            <span className="mono">Browser games</span>
+            <b>06</b>
+            <span className="mono">Hackathon wins</span>
           </div>
         </div>
       </div>
