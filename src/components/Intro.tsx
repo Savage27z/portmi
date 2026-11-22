@@ -1,18 +1,19 @@
 import gsap from 'gsap'
 import { useEffect, useRef } from 'react'
+import { projects } from '../data/projects'
 
 const lines = ['Building', 'creative', 'things', 'since 2023']
 
 const skills = [
-  { title: '3D & Games', note: "If it can run at 60fps in a browser tab, I've probably tried to ship it." },
-  { title: 'AI Agents', note: 'Swarms that research, write, investigate and argue, so I can sleep.' },
-  { title: 'Onchain', note: 'Solana, Base, Cosmos, Sui, Arbitrum. I go wherever the bounty is.' },
-  { title: 'Trading Bots', note: 'Latency arb, snipers, scanners. Some of them even make money.' },
+  { title: '3D & Games', note: 'Wingsuit races, co-op horror, rooftop parkour. If it runs at 60fps in a tab, I ship it.' },
+  { title: 'AI Agents', note: 'Agents that trace stolen crypto, run a newsroom and vet their own installs, so I can sleep.' },
+  { title: 'Onchain', note: 'Eleven chains so far, from Solana and Base to Sui and NEAR. I go wherever the bounty is.' },
+  { title: 'Telegram Bots', note: 'Snipers, scanners, escrow and a prop-firm trader, all run from a chat.' },
   { title: 'Motion & UI', note: 'I use fancy motion to make my work look harder than it was.' },
 ]
 
 const about =
-  "Hi, I'm Idris Ahmed — SSS tier shipper. I make browser games, AI agent swarms, trading bots and onchain products that people actually use, then I make them move."
+  "Hi, I'm Idris Ahmed, a six-time hackathon winner from Lagos. I build browser games, AI agents, Telegram bots and onchain products that people actually use, then I make them move."
 
 export default function Intro() {
   const root = useRef<HTMLElement>(null)
@@ -88,16 +89,16 @@ export default function Intro() {
         </p>
         <div className="stats">
           <div className="stat">
-            <b>06</b>
-            <span className="mono">Hackathon wins</span>
+            <b>{String(projects.length).padStart(2, '0')}</b>
+            <span className="mono">Projects shipped</span>
           </div>
           <div className="stat">
-            <b>49</b>
-            <span className="mono">Public repos</span>
-          </div>
-          <div className="stat">
-            <b>5+</b>
+            <b>11</b>
             <span className="mono">Chains shipped on</span>
+          </div>
+          <div className="stat">
+            <b>{String(projects.filter((p) => p.category === 'Games').length).padStart(2, '0')}</b>
+            <span className="mono">Browser games</span>
           </div>
         </div>
       </div>
