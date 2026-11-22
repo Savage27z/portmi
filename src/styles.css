@@ -405,6 +405,9 @@ body.cursor-hover .cursor-ring { width: 56px; height: 56px; margin: -28px 0 0 -2
 
 /* music: little corner player */
 .music { position: fixed; right: var(--pad); bottom: var(--pad); z-index: 60; display: flex; flex-direction: column; align-items: flex-end; gap: 12px; }
+/* the wrapper spans the closed card's space; only the button and the open card take clicks */
+.music { pointer-events: none; }
+.music-btn, .music.is-open .music-panel { pointer-events: auto; }
 
 /* the button is a small vinyl that spins while a song plays */
 .music-btn { width: 52px; height: 52px; border-radius: 50%; padding: 0; background: none; transition: transform 0.5s var(--ease); animation: musicIn 0.9s 1.2s var(--ease) both; filter: drop-shadow(0 8px 18px rgba(0, 0, 0, 0.55)); }
