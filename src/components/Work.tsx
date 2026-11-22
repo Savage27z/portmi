@@ -16,8 +16,8 @@ function bookStyle(p: Project) {
   let h = 0
   for (const c of p.id) h = (h * 31 + c.charCodeAt(0)) >>> 0
   const height = 76 + (h % 25) // 76–100% of the shelf
-  const width = 2.8 + ((h >> 5) % 23) / 10 // 2.8–5vw
-  const tone = 34 + ((h >> 9) % 28) // how much of the accent shows in the cloth
+  const width = 2.8 + ((h >>> 5) % 23) / 10 // 2.8–5vw
+  const tone = 34 + ((h >>> 9) % 28) // how much of the accent shows in the cloth
   return {
     ['--h' as string]: height + '%',
     ['--w' as string]: width + 'vw',
