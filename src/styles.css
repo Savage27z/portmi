@@ -476,3 +476,26 @@ body.cursor-hover .cursor-ring { width: 56px; height: 56px; margin: -28px 0 0 -2
 .eq i:nth-child(3) { animation-duration: 1.1s; animation-delay: -0.6s; }
 @keyframes eqBounce { from { height: 15%; } to { height: 100%; } }
 .music-note { font-size: 8px; color: var(--mute); text-align: right; }
+
+/* music on phones: compact card, cover beside the title, queue as a row of covers */
+@media (max-width: 700px) {
+  .music-panel {
+    display: grid; grid-template-columns: 200px 1fr; column-gap: 12px; align-items: start; padding: 12px;
+    grid-template-areas: 'head head' 'screen now' 'progress progress' 'times times' 'controls controls' 'list list' 'note note';
+  }
+  .music-head { grid-area: head; }
+  .music-screen { grid-area: screen; width: 200px; }
+  .music-now { grid-area: now; margin: 4px 0 0; min-width: 0; }
+  .music-now-title { font-size: 17px; overflow-wrap: anywhere; }
+  .music-progress { grid-area: progress; margin-top: 10px; }
+  .music-times { grid-area: times; }
+  .music-controls { grid-area: controls; margin: 2px 0 8px; }
+  .music-list { grid-area: list; display: flex; justify-content: space-between; gap: 6px; margin: 0 0 6px; padding-top: 10px; }
+  .music-list li { flex: 1; }
+  .music-list button { display: block; padding: 3px; }
+  .music-list .music-row-text, .music-list .music-idx, .music-list .eq-row { display: none; }
+  .music-thumb { display: block; width: 100%; height: auto; aspect-ratio: 1; }
+  .music-list button.on .music-thumb { box-shadow: 0 0 0 2px var(--orange); }
+  .music-note { grid-area: note; }
+}
+
