@@ -3,11 +3,11 @@ import { useEffect, useRef, useState } from 'react'
 // Official Spotify embeds only: the songs stream from Spotify, nothing is hosted here.
 // Visitors logged into Spotify hear full tracks; everyone else gets 30-second previews.
 const tracks = [
+  { id: '514joG57v4yKTsfQmz7stz', title: 'Janice STFU', album: 'ICEMAN' },
   { id: '5kQaR1wreGrkzJcXjysi8n', title: 'Do Not Disturb', album: 'More Life' },
   { id: '1PDP7mLiAMwhfmgIwzhOm2', title: "Yebba's Heartbreak", album: 'Certified Lover Boy' },
   { id: '1FswxShHCKgDSuNcZqfkk1', title: 'Cameras / Good Ones Go', album: 'Take Care' },
   { id: '0wwPcA6wtMf6HUMpIRdeP7', title: 'Hotline Bling', album: 'Views' },
-  { id: '1svuouRvqWANBZJ0WqhLRn', title: '2 Hard 4 The Radio', album: 'ICEMAN' },
 ]
 
 type Controller = {
